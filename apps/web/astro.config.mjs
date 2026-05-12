@@ -8,10 +8,9 @@ import tailwind from '@astrojs/tailwind';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  site: 'https://dev.ecom',
   output: 'server',
-
   adapter: vercel(),
-
   vite: {
     resolve: {
       alias: {
@@ -19,13 +18,11 @@ export default defineConfig({
       },
     },
   },
-
   integrations: [
     react(),
     tailwind({
       applyBaseStyles: false,
     }),
   ],
-
   prefetch: true,
 });
