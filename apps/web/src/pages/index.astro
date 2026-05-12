@@ -1,10 +1,8 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import { Landing } from '@/components/landing/Landing';
-
-const dashboardUrl = import.meta.env.PUBLIC_DASHBOARD_URL ?? '/dashboard';
 ---
 
-<Layout>
-  <Landing client:load dashboardUrl={dashboardUrl} />
-</Layout>
+<html>
+  <body style="background:black;color:white;padding:40px;">
+    <h1>Astro Working 🚀</h1>
+  </body>
+</html>
