@@ -11,9 +11,9 @@ export default clerkMiddleware((auth, req) => {
   if (!process.env.CLERK_SECRET_KEY) {
     return NextResponse.next();
   }
-  if (!isPublicRoute(req)) {
-    auth().protect();
-  }
+  if (!isPublicRoute(req) && process.env.CLERK_SECRET_KEY) {
+  auth().protect();
+}
 });
 
 export const config = {
