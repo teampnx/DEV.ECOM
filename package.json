@@ -1,4 +1,8 @@
 {
+  "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "dependencies": {
     "astro": "^6.3.1"
   }
