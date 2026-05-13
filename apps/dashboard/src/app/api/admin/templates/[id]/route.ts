@@ -1,10 +1,17 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { getSupabaseAdminOrNull, isSupabaseAdminConfigured } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
+  if (!isSupabaseAdminConfigured()) {
+    return NextResponse.json(
+      { error: 'Supabase not configured', code: 'MISSING_SUPABASE' },
+      { status: 503 },
+    );
+  }
+
   const { userId } = auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -12,7 +19,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
 
   try {
-    const sb = getSupabaseAdmin();
+    const sb = getSupabaseAdminOrNull()!;
     const { data, error } = await sb.from('templates').select('*').eq('id', id).maybeSingle();
     if (error) throw error;
     if (!data) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -24,6 +31,10 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  if (!isSupabaseAdminConfigured()) {
+    return NextResponse.json({ error: 'Supabase not configured', code: 'MISSING_SUPABASE' }, { status: 503 });
+  }
+
   const { userId } = auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -32,7 +43,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   try {
     const body = (await req.json()) as Record<string, unknown>;
-    const sb = getSupabaseAdmin();
+    const sb = getSupabaseAdminOrNull()!;
 
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
     const keys = [
@@ -75,6 +86,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+  if (!isSupabaseAdminConfigured()) {
+    return NextResponse.json({ error: 'Supabase not configured', code: 'MISSING_SUPABASE' }, { status: 503 });
+  }
+
   const { userId } = auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -82,7 +97,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
 
   try {
-    const sb = getSupabaseAdmin();
+    const sb = getSupabaseAdminOrNull()!;
     const { error } = await sb.from('templates').delete().eq('id', id);
     if (error) throw error;
     return NextResponse.json({ ok: true });

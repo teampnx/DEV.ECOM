@@ -1,31 +1,51 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { getSupabaseAdminOrNull, isSupabaseAdminConfigured } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  if (!isSupabaseAdminConfigured()) {
+    return NextResponse.json({
+      templates: [] as unknown[],
+      supabaseConfigured: false,
+      hint: 'Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to enable the CMS. See docs/ENV-WHEN-READY.md',
+    });
+  }
+
   const { userId } = auth();
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized', supabaseConfigured: true }, { status: 401 });
+  }
 
   try {
-    const sb = getSupabaseAdmin();
+    const sb = getSupabaseAdminOrNull()!;
     const { data, error } = await sb.from('templates').select('*').order('created_at', { ascending: false });
     if (error) throw error;
-    return NextResponse.json({ templates: data ?? [] });
+    return NextResponse.json({ templates: data ?? [], supabaseConfigured: true });
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Failed to load templates';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: msg, supabaseConfigured: true }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
+  if (!isSupabaseAdminConfigured()) {
+    return NextResponse.json(
+      {
+        error: 'Supabase is not configured. Add env vars first — see docs/ENV-WHEN-READY.md',
+        code: 'MISSING_SUPABASE',
+      },
+      { status: 503 },
+    );
+  }
+
   const { userId } = auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
     const body = (await req.json()) as Record<string, unknown>;
-    const sb = getSupabaseAdmin();
+    const sb = getSupabaseAdminOrNull()!;
 
     const insert = {
       slug: String(body.slug ?? '').trim(),

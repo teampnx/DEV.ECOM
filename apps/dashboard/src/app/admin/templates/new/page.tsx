@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type FormState = Record<string, string | boolean>;
 
@@ -42,6 +42,15 @@ export default function NewTemplatePage() {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(initial);
   const [err, setErr] = useState<string | null>(null);
+  const [supabaseConfigured, setSupabaseConfigured] = useState(true);
+
+  useEffect(() => {
+    void (async () => {
+      const res = await fetch('/api/admin/templates');
+      const data = await res.json();
+      if (data.supabaseConfigured === false) setSupabaseConfigured(false);
+    })();
+  }, []);
 
   function set(k: string, v: string | boolean) {
     setForm((prev) => ({ ...prev, [k]: v }));
@@ -49,6 +58,7 @@ export default function NewTemplatePage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!supabaseConfigured) return;
     setErr(null);
     try {
       const payload = {
@@ -94,6 +104,11 @@ export default function NewTemplatePage() {
     <div className="min-h-dvh bg-bg px-4 py-10 text-white">
       <div className="mx-auto max-w-3xl">
         <h1 className="text-2xl font-bold">New template</h1>
+        {!supabaseConfigured && (
+          <p className="mt-4 rounded-lg border border-accent/30 bg-accent/10 p-3 text-sm text-zinc-200">
+            Configure Supabase first — see <code className="rounded bg-black/40 px-1">docs/ENV-WHEN-READY.md</code>.
+          </p>
+        )}
         <form onSubmit={submit} className="mt-8 space-y-4">
           {(
             [
@@ -178,7 +193,11 @@ export default function NewTemplatePage() {
           </label>
 
           {err && <p className="text-sm text-red-400">{err}</p>}
-          <button type="submit" className="rounded-full bg-accent px-8 py-3 text-sm font-semibold text-black">
+          <button
+            type="submit"
+            disabled={!supabaseConfigured}
+            className="rounded-full bg-accent px-8 py-3 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40"
+          >
             Save template
           </button>
         </form>

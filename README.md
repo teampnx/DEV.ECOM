@@ -6,7 +6,7 @@ Premium dark-mode marketing site (Astro) and merchant dashboard (Next.js) with a
 
 | Path | Stack | Purpose |
 |------|--------|---------|
-| `apps/web` | Astro 4 (hybrid SSR), Tailwind, TS, Framer Motion | Marketing site, `/templates` marketplace, **dynamic** `/templates/[slug]` detail pages |
+| `apps/web` | Astro 4 + `@astrojs/vercel`, Tailwind, TS, Framer Motion | Marketing site, `/templates`, dynamic `/templates/[slug]` |
 | `apps/dashboard` | Next.js 14, Clerk, Stripe, Supabase admin API | Merchant UI + **`/admin/templates`** CMS + Stripe checkout |
 | `supabase/migrations` | SQL | `templates` table schema |
 
@@ -19,6 +19,8 @@ Premium dark-mode marketing site (Astro) and merchant dashboard (Next.js) with a
 
 Detail URLs work for **any slug present in the database** — no new Astro pages required.
 
+**No accounts yet?** You can still run and deploy: see [docs/ENV-WHEN-READY.md](docs/ENV-WHEN-READY.md) (what each key is for + where to paste it later).
+
 ## Quick start
 
 ### Astro storefront
@@ -30,7 +32,7 @@ npm install
 npm run dev
 ```
 
-With hybrid SSR, use **`npm run preview`** after build for production-like preview (`astro preview` runs the Node adapter).
+After `npm run build`, use **`npx vercel`** from `apps/web` or connect the repo in the Vercel dashboard. See **[docs/VERCEL.md](docs/VERCEL.md)** for two-project setup (storefront + dashboard).
 
 ### Dashboard + CMS + Checkout
 
@@ -47,9 +49,8 @@ Set **`PUBLIC_DASHBOARD_URL=http://localhost:3000`** in `apps/web/.env` so Login
 
 ## Deployment notes
 
-- **Astro hybrid**: Uses `@astrojs/node`. Deploy to any Node host, or switch to `@astrojs/cloudflare` if you need Workers SSR on Cloudflare Pages.
-- **Vercel**: Point project root at `apps/dashboard`.
-- **Stripe checkout**: `POST /api/checkout/create-session` — set `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_SITE_URL` (success/cancel URLs).
+- **Vercel (recommended)**: Step-by-step for **two projects** (Astro storefront + Next dashboard) — [docs/VERCEL.md](docs/VERCEL.md). The Astro app uses **`@astrojs/vercel`** (build output goes to `.vercel/output/`).
+- **Stripe checkout**: `POST /api/checkout/create-session` — set `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_SITE_URL` (success/cancel URLs to your live storefront).
 
 ## Environment variables
 
